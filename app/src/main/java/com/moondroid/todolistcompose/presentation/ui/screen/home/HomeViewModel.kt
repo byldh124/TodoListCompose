@@ -1,4 +1,4 @@
-package com.moondroid.todolistcompose.presentation.ui.feature.home
+package com.moondroid.todolistcompose.presentation.ui.screen.home
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
@@ -23,7 +23,6 @@ class HomeViewModel @Inject constructor(
     fun getNote() {
         viewModelScope.launch {
             getNotesUseCase().collect { result ->
-                debug("LIST : $result")
                 _data.value = result
             }
         }

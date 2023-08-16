@@ -1,5 +1,6 @@
-package com.moondroid.todolistcompose.presentation.ui.feature.home
+package com.moondroid.todolistcompose.presentation.ui.screen.home
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -24,25 +26,24 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import com.moondroid.todolistcompose.R
 import com.moondroid.todolistcompose.common.BoxColor
 import com.moondroid.todolistcompose.domain.model.Note
+import com.moondroid.todolistcompose.presentation.navigation.MyNavigationAction
+import com.moondroid.todolistcompose.presentation.ui.theme.CAFE_24
+import com.moondroid.todolistcompose.presentation.ui.theme.JALNAN
+import com.moondroid.todolistcompose.presentation.ui.theme.NANUM_EB
 import com.moondroid.todolistcompose.presentation.ui.theme.Purple40
 import java.text.SimpleDateFormat
 import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
+fun HomeScreen(navigationAction: MyNavigationAction, homeViewModel: HomeViewModel) {
     val list = remember {
         homeViewModel.data
     }
@@ -65,7 +66,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
             Text(
                 text = "메모장",
                 color = Color.Red,
-                fontFamily = FontFamily(Font(R.font.jalnan))
+                fontFamily = JALNAN
             )
         }
 
@@ -83,7 +84,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                     shape = CircleShape,
                     containerColor = Purple40,
                     onClick = {
-                        navController.navigate("note")
+                        navigationAction.toNote(0)
                     }) {
                     Icon(Icons.Filled.Add, "")
                 }
@@ -94,7 +95,9 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                     .fillMaxSize()
                     .padding(contentPadding)
             ) {
-                NoteList(list = list.value)
+                NoteList(list = list.value) { note ->
+                    navigationAction.toNote(note.id)
+                }
             }
         }
     }
@@ -112,10 +115,8 @@ fun NoteList(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        items(list.size) { index ->
-            NoteItem(
-                note = list[index], onClick = onItemClicked
-            )
+        items(list) { note ->
+            NoteItem(note, onItemClicked)
         }
     }
 }
@@ -128,7 +129,7 @@ fun NoteItem(note: Note, onClick: (Note) -> Unit) {
             .clickable { onClick(note) },
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(
-            containerColor = note.boxColor.value
+            containerColor = note.boxColor.color
         )
     ) {
         Column(
@@ -141,14 +142,23 @@ fun NoteItem(note: Note, onClick: (Note) -> Unit) {
                 contentAlignment = Alignment.TopEnd
             ) {
                 Text(
-                    text = SimpleDateFormat("yyyy MM dd HH:mm:ss").format(Date(note.date))
+                    text = getDateFormat(note.date),
+                    fontFamily = CAFE_24
                 )
             }
             Box {
-                Text(text = note.description)
+                Text(
+                    text = note.description,
+                    fontFamily = NANUM_EB
+                )
             }
         }
     }
+}
+
+@SuppressLint("SimpleDateFormat")
+private fun getDateFormat(date: Long): String {
+    return SimpleDateFormat("yyyy MM dd HH:mm:ss").format(Date(date))
 }
 
 @Preview

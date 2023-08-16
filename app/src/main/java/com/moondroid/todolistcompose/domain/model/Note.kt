@@ -1,10 +1,13 @@
 package com.moondroid.todolistcompose.domain.model
 
+import android.os.Parcelable
 import com.moondroid.todolistcompose.common.BoxColor
+import kotlinx.android.parcel.Parcelize
 
+@Parcelize
 data class Note(
     val id: Int = 0,
-    val description: String,
+    var description: String,
     val date: Long,
-    val boxColor: BoxColor,
-)
+    var boxColor: BoxColor,
+) : Parcelable

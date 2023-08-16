@@ -10,4 +10,6 @@ class GetNotesUseCase @Inject constructor(
     suspend fun execute() = getNotes()
     suspend operator fun invoke() = getNotes()
     private suspend fun getNotes() = repository.getNotes()
+
+    suspend fun getNote(id: Int) = repository.getNote(id)
 }

@@ -8,5 +8,5 @@ object DataMapper {
         Note(id = id, description = description, date = date, boxColor = boxColor)
 
     fun Note.toNoteEntity(): NoteEntity =
-        NoteEntity(description = description, date = date, boxColor = boxColor)
+        NoteEntity(id = id, description = description, date = date, boxColor = boxColor)
 }
