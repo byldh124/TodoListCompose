@@ -31,6 +31,9 @@ class NoteViewModel @Inject constructor(
     private val _boxColor = mutableStateOf(BoxColor.getRandom())
     val boxColor: State<BoxColor> get() = _boxColor
 
+    private val _saveDone = mutableStateOf(false)
+    val saveDone: State<Boolean> get() = _saveDone
+
     fun setText(newData: String) {
         _data.value = newData
     }
@@ -57,7 +60,7 @@ class NoteViewModel @Inject constructor(
             it.boxColor = _boxColor.value
 
             update(it)
-        } ?: {
+        } ?: run {
             val note = Note(
                 id = 0,
                 description = _data.value,
@@ -73,14 +76,17 @@ class NoteViewModel @Inject constructor(
             debug("UPDATE : $note")
             updateNoteUseCase.update(note).collect { long ->
                 debug("RESULT : $long")
+                _saveDone.value = true
             }
         }
     }
 
     private fun insert(note: Note) {
         viewModelScope.launch {
+            debug("INSERT : $note")
             insertNoteUseCase.insertNote(note).collect { long ->
                 debug("RESULT : $long")
+                _saveDone.value = true
             }
         }
     }

@@ -1,8 +1,11 @@
 package com.moondroid.todolistcompose.presentation.ui.screen.home
 
 import android.annotation.SuppressLint
+import android.util.Log
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +19,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -23,8 +27,10 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,6 +52,27 @@ import java.util.Date
 fun HomeScreen(navigationAction: MyNavigationAction, homeViewModel: HomeViewModel) {
     val list = remember {
         homeViewModel.data
+    }
+
+    val showDialog = remember {
+        mutableStateOf(false)
+    }
+
+    val deleteNote = remember {
+        mutableStateOf<Note?>(null)
+    }
+
+    if (showDialog.value) {
+        Alert(
+            showDialog = showDialog.value,
+            onDismiss = {
+                showDialog.value = false
+            },
+            onConfirm = {
+                homeViewModel.delete(deleteNote.value!!)
+                showDialog.value = false
+            }
+        )
     }
 
     LaunchedEffect(key1 = list) {
@@ -95,9 +122,16 @@ fun HomeScreen(navigationAction: MyNavigationAction, homeViewModel: HomeViewMode
                     .fillMaxSize()
                     .padding(contentPadding)
             ) {
-                NoteList(list = list.value) { note ->
-                    navigationAction.toNote(note.id)
-                }
+                NoteList(
+                    list = list.value,
+                    onItemClicked = { note ->
+                        navigationAction.toNote(note.id)
+                    },
+                    onItemLongClicked = { note ->
+                        deleteNote.value = note
+                        showDialog.value = true
+                    }
+                )
             }
         }
     }
@@ -107,6 +141,7 @@ fun HomeScreen(navigationAction: MyNavigationAction, homeViewModel: HomeViewMode
 fun NoteList(
     list: List<Note>,
     onItemClicked: (Note) -> Unit = {},
+    onItemLongClicked: (Note) -> Unit = {},
 ) {
     LazyColumn(
         modifier = Modifier
@@ -116,17 +151,25 @@ fun NoteList(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         items(list) { note ->
-            NoteItem(note, onItemClicked)
+            NoteItem(note, onItemClicked, onItemLongClicked)
         }
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun NoteItem(note: Note, onClick: (Note) -> Unit) {
+fun NoteItem(note: Note, onClick: (Note) -> Unit, onLongClicked: (Note) -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxSize()
-            .clickable { onClick(note) },
+            .combinedClickable(
+                onClick = {
+                    onClick(note)
+                },
+                onLongClick = {
+                    onLongClicked(note)
+                }
+            ),
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(
             containerColor = note.boxColor.color
@@ -156,14 +199,35 @@ fun NoteItem(note: Note, onClick: (Note) -> Unit) {
     }
 }
 
+@Composable
+fun Alert(
+    showDialog: Boolean,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text(text = "확인")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(text = "취소")
+            }
+        },
+        title = {
+            Text(text = "삭제하시겠습니까?")
+        },
+        text = {
+            Text(text = "저장된 메모가 삭제됩니다.")
+        }
+    )
+}
+
 @SuppressLint("SimpleDateFormat")
 private fun getDateFormat(date: Long): String {
     return SimpleDateFormat("yyyy MM dd HH:mm:ss").format(Date(date))
-}
-
-@Preview
-@Composable
-fun NoteItemPreview() {
-    NoteItem(note = Note(description = "Hello", date = 0L, boxColor = BoxColor.BLUE), onClick = {})
 }
 

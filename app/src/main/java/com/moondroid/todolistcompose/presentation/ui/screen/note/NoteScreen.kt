@@ -25,6 +25,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -44,7 +45,15 @@ fun NoteScreen(
     noteViewModel: NoteViewModel = hiltViewModel(),
     noteId: String,
 ) {
+    val saveDone = remember {
+        noteViewModel.saveDone
+    }
+    if (saveDone.value) {
+        navController.navigateUp()
+    }
+
     val id = noteId.toInt()
+
     LaunchedEffect(key1 = id) {
         noteViewModel.getNote(id)
     }
@@ -137,7 +146,11 @@ fun BoxColorSelector(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(painter = painterResource(id = R.drawable.ic_check), contentDescription = "", tint = Color.White)
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_check),
+                    contentDescription = "",
+                    tint = Color.White
+                )
             }
         }
     }
