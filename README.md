@@ -9,6 +9,7 @@ https://github.com/byldh124/TodoListKt
 - Room
 - Dagger Hilt
 - Navigation
+- Glide
 
 
 
